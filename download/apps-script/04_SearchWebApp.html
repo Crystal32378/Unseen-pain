@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>院所搜尋｜看不見的痛</title>
+  <style>
+    /* ===== 樣式（與 Next.js 預覽版一致） ===== */
+    :root {
+      --bg: #FAF7F2;
+      --fg: #3A3A38;
+      --card: #FFFFFF;
+      --primary: #5A7A9E;
+      --primary-fg: #FFFFFF;
+      --muted: #6B6B68;
+      --border: #E8E2D8;
+      --accent: #F0EBE0;
+      --alert: #F5E6E0;
+      --alert-fg: #9C5B3F;
+      --calm: #E6EDF3;
+      --calm-fg: #4A6B8A;
+      --warm: #F3EDE0;
+      --warm-fg: #7A6B4A;
+      --radius: 12px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Noto Sans TC', 'Microsoft JhengHei', -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--fg);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: var(--fg);
+    }
+
+    h2 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 0.95rem;
+      margin-bottom: 24px;
+    }
+
+    /* 搜尋表單 */
+    .form-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.9rem;
+      font-weight: 500;
+      margin-bottom: 8px;
+      color: var(--fg);
+    }
+
+    .chip-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .chip {
+      padding: 8px 16px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--card);
+      color: var(--muted);
+      font-size: 0.875rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      min-height: 40px;
+      display: flex;
+      align-items: center;
+    }
+
+    .chip:hover { background: var(--accent); }
+
+    .chip.active {
+      background: var(--primary);
+      color: var(--primary-fg);
+      border-color: var(--primary);
+    }
+
+    select, input[type="text"] {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--card);
+      color: var(--fg);
+      font-size: 0.95rem;
+      font-family: inherit;
+    }
+
+    select:focus, input:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    .btn-primary {
+      width: 100%;
+      padding: 12px;
+      background: var(--primary);
+      color: var(--primary-fg);
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: opacity 0.2s;
+      min-height: 48px;
+    }
+
+    .btn-primary:hover { opacity: 0.9; }
+
+    .btn-location {
+      padding: 8px 16px;
+      background: var(--card);
+      color: var(--fg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.875rem;
+      cursor: pointer;
+      min-height: 40px;
+    }
+
+    /* 進階區 */
+    .advanced-toggle {
+      color: var(--primary);
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      background: none;
+      border: none;
+      padding: 8px 0;
+    }
+
+    .advanced-section {
+      display: none;
+      padding: 16px;
+      background: var(--accent);
+      border-radius: 8px;
+      margin-top: 8px;
+    }
+
+    .advanced-section.show { display: block; }
+
+    .checkbox-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px;
+      cursor: pointer;
+    }
+
+    .checkbox-item input {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--primary);
+    }
+
+    /* 結果 */
+    .results-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      color: var(--muted);
+      font-size: 0.875rem;
+    }
+
+    .facility-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-bottom: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+
+    .facility-name {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--fg);
+      margin-bottom: 4px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      margin-right: 6px;
+    }
+
+    .badge-specialty {
+      background: rgba(90, 122, 158, 0.1);
+      color: var(--primary);
+    }
+
+    .badge-type {
+      background: var(--accent);
+      color: var(--muted);
+    }
+
+    .facility-info {
+      margin-top: 10px;
+      font-size: 0.875rem;
+      color: var(--muted);
+    }
+
+    .facility-info div {
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+      margin-bottom: 4px;
+    }
+
+    .action-buttons {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .action-btn {
+      padding: 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--card);
+      color: var(--fg);
+      text-decoration: none;
+      font-size: 0.875rem;
+      font-weight: 500;
+      text-align: center;
+      cursor: pointer;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+
+    .action-btn:hover { background: var(--accent); }
+
+    .action-btn.primary {
+      background: var(--primary);
+      color: var(--primary-fg);
+      border-color: var(--primary);
+    }
+
+    .action-btn.primary:hover { opacity: 0.9; }
+
+    .details-section {
+      display: none;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+    }
+
+    .details-section.show { display: block; }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      margin-bottom: 4px;
+    }
+
+    .status-verified { background: var(--calm); color: var(--calm-fg); }
+    .status-unverified { background: var(--accent); color: var(--muted); }
+    .status-invalid { background: var(--alert); color: var(--alert-fg); }
+
+    /* 載入與錯誤狀態 */
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: var(--muted);
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 24px;
+      height: 24px;
+      border: 3px solid var(--border);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .error-box {
+      background: var(--alert);
+      color: var(--alert-fg);
+      padding: 16px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+    }
+
+    .empty-box {
+      text-align: center;
+      padding: 32px;
+      color: var(--muted);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+
+    .attribution {
+      background: var(--warm);
+      color: var(--warm-fg);
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 0.75rem;
+      margin-top: 20px;
+    }
+
+    /* 展開按鈕 */
+    .expand-btn {
+      float: right;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--muted);
+      font-size: 1.2rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>找附近的神經科與復健科院所</h1>
+    <p class="subtitle">資料來自衛福部健保署公開資料，可依科別、地區、院所類型搜尋。</p>
+
+    <!-- 搜尋表單 -->
+    <div class="form-card">
+      <div class="form-group">
+        <label>科別</label>
+        <div class="chip-group" id="specialtyGroup">
+          <button class="chip active" data-value="both">兩者皆可</button>
+          <button class="chip" data-value="neurology">神經內科／神經科</button>
+          <button class="chip" data-value="rehabilitation">復健科</button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>縣市</label>
+        <select id="citySelect">
+          <option value="">不限縣市</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>行政區</label>
+        <select id="districtSelect" disabled>
+          <option value="">不限行政區</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <button class="btn-location" id="locationBtn">📍 使用目前位置</button>
+        <div id="locationStatus" style="font-size:0.8rem; color:var(--muted); margin-top:4px;"></div>
+      </div>
+
+      <div class="form-group">
+        <label>院所類型</label>
+        <div class="chip-group" id="typeGroup">
+          <button class="chip active" data-value="any">不限</button>
+          <button class="chip" data-value="medical_center">醫學中心</button>
+          <button class="chip" data-value="regional_hospital">區域醫院</button>
+          <button class="chip" data-value="district_hospital">地區醫院</button>
+          <button class="chip" data-value="clinic">診所</button>
+        </div>
+      </div>
+
+      <button class="advanced-toggle" id="advancedToggle">▾ 進階條件（只顯示已查證的院所）</button>
+      <div class="advanced-section" id="advancedSection">
+        <div class="checkbox-item">
+          <input type="checkbox" id="has_emg"> <label for="has_emg">有公開標示肌電圖</label>
+        </div>
+        <div class="checkbox-item">
+          <input type="checkbox" id="has_ncs"> <label for="has_ncs">有公開標示神經傳導檢查</label>
+        </div>
+        <div class="checkbox-item">
+          <input type="checkbox" id="has_pt"> <label for="has_pt">有物理治療</label>
+        </div>
+        <div class="checkbox-item">
+          <input type="checkbox" id="has_et"> <label for="has_et">有電療</label>
+        </div>
+        <div class="checkbox-item">
+          <input type="checkbox" id="need_appt"> <label for="need_appt">是否需預約</label>
+        </div>
+      </div>
+
+      <div style="margin-top: 16px;">
+        <button class="btn-primary" id="searchBtn">🔍 搜尋院所</button>
+      </div>
+    </div>
+
+    <!-- 結果區 -->
+    <div id="resultsArea"></div>
+
+    <div class="attribution">
+      部分地圖、網站與營業資訊由 Google Maps 提供。實際科別、門診、檢查與復健服務，請於前往前向院所確認。
+    </div>
+  </div>
+
+  <script>
+    // ===== 狀態 =====
+    var state = {
+      specialty: 'both',
+      city: '',
+      district: '',
+      facilityType: 'any',
+      useLocation: false,
+      lat: null,
+      lng: null,
+      advanced: {
+        has_emg: false,
+        has_ncs: false,
+        has_pt: false,
+        has_et: false,
+        need_appt: false
+      }
+    };
+
+    var cities = [
+      '台北市', '新北市', '桃園市', '台中市', '台南市', '高雄市',
+      '基隆市', '新竹市', '嘉義市', '新竹縣', '苗栗縣', '彰化縣',
+      '南投縣', '雲林縣', '嘉義縣', '屏東縣', '宜蘭縣', '花蓮縣',
+      '台東縣', '澎湖縣', '金門縣', '連江縣'
+    ];
+
+    // ===== 初始化 =====
+    function init() {
+      // 填入縣市
+      var citySelect = document.getElementById('citySelect');
+      cities.forEach(function(c) {
+        var opt = document.createElement('option');
+        opt.value = c;
+        opt.textContent = c;
+        citySelect.appendChild(opt);
+      });
+
+      // 綁定科別 chip
+      bindChipGroup('specialtyGroup', function(val) { state.specialty = val; });
+      bindChipGroup('typeGroup', function(val) { state.facilityType = val; });
+
+      // 縣市變更
+      citySelect.addEventListener('change', function() {
+        state.city = this.value;
+        state.district = '';
+        loadDistricts(this.value);
+      });
+
+      document.getElementById('districtSelect').addEventListener('change', function() {
+        state.district = this.value;
+      });
+
+      // 定位
+      document.getElementById('locationBtn').addEventListener('click', requestLocation);
+
+      // 進階
+      document.getElementById('advancedToggle').addEventListener('click', function() {
+        var sec = document.getElementById('advancedSection');
+        sec.classList.toggle('show');
+      });
+
+      ['has_emg', 'has_ncs', 'has_pt', 'has_et', 'need_appt'].forEach(function(id) {
+        document.getElementById(id).addEventListener('change', function() {
+          state.advanced[id] = this.checked;
+        });
+      });
+
+      // 搜尋
+      document.getElementById('searchBtn').addEventListener('click', doSearch);
+    }
+
+    function bindChipGroup(groupId, callback) {
+      var group = document.getElementById(groupId);
+      var chips = group.querySelectorAll('.chip');
+      chips.forEach(function(chip) {
+        chip.addEventListener('click', function() {
+          chips.forEach(function(c) { c.classList.remove('active'); });
+          this.classList.add('active');
+          callback(this.dataset.value);
+        });
+      });
+    }
+
+    function loadDistricts(city) {
+      var districtSelect = document.getElementById('districtSelect');
+      districtSelect.innerHTML = '<option value="">不限行政區</option>';
+      districtSelect.disabled = !city;
+
+      if (!city) return;
+
+      // 從後端取行政區
+      google.script.run
+        .withSuccessHandler(function(districts) {
+          districts.forEach(function(d) {
+            var opt = document.createElement('option');
+            opt.value = d;
+            opt.textContent = d;
+            districtSelect.appendChild(opt);
+          });
+        })
+        .withFailureHandler(function(err) {
+          console.error('取行政區失敗', err);
+        })
+        .getDistrictsByCity(city);
+    }
+
+    function requestLocation() {
+      var btn = document.getElementById('locationBtn');
+      var status = document.getElementById('locationStatus');
+
+      if (!navigator.geolocation) {
+        status.textContent = '你的瀏覽器不支援定位，請改用手動選擇縣市。';
+        return;
+      }
+
+      btn.textContent = '⏳ 定位中...';
+      status.textContent = '';
+
+      navigator.geolocation.getCurrentPosition(
+        function(pos) {
+          state.useLocation = true;
+          state.lat = pos.coords.latitude;
+          state.lng = pos.coords.longitude;
+          btn.textContent = '✓ 已取得位置';
+          status.textContent = '已取得你的位置，搜尋時將依距離排序。';
+        },
+        function(err) {
+          state.useLocation = false;
+          btn.textContent = '📍 使用目前位置';
+          if (err.code === err.PERMISSION_DENIED) {
+            status.textContent = '定位被拒絕。沒關係，你可以用上面的縣市與行政區搜尋。';
+          } else {
+            status.textContent = '定位失敗，請改用手動選擇。';
+          }
+        },
+        { timeout: 10000 }
+      );
+    }
+
+    function doSearch() {
+      var resultsArea = document.getElementById('resultsArea');
+      resultsArea.innerHTML = '<div class="loading"><div class="spinner"></div><p style="margin-top:12px;">搜尋中...</p></div>';
+
+      google.script.run
+        .withSuccessHandler(function(results) {
+          renderResults(results);
+        })
+        .withFailureHandler(function(err) {
+          resultsArea.innerHTML = '<div class="error-box">搜尋時發生問題：' + escapeHtml(err.message || err) + '<br>請稍後再試，或改用較寬鬆的搜尋條件。</div>';
+        })
+        .searchFacilities(state);
+    }
+
+    function renderResults(results) {
+      var resultsArea = document.getElementById('resultsArea');
+
+      if (!results || results.length === 0) {
+        resultsArea.innerHTML = '<div class="empty-box"><p style="font-weight:500;">查無結果</p><p style="margin-top:8px;">試著放寬搜尋條件，或改用「兩者皆可」的科別選項。</p></div>';
+        return;
+      }
+
+      var html = '<div class="results-header"><span>找到 <strong>' + results.length + '</strong> 間院所</span><span>預設依院所類型與名稱排序</span></div>';
+
+      results.forEach(function(fac) {
+        var specialties = [];
+        if (fac.specialty_neurology) specialties.push('<span class="badge badge-specialty">神經內科</span>');
+        if (fac.specialty_rehabilitation) specialties.push('<span class="badge badge-specialty">復健科</span>');
+
+        var typeLabels = {
+          medical_center: '醫學中心',
+          regional_hospital: '區域醫院',
+          district_hospital: '地區醫院',
+          clinic: '診所'
+        };
+
+        html += '<div class="facility-card">';
+        html += '<button class="expand-btn" onclick="toggleDetails(\'' + fac.facility_id + '\')">▾</button>';
+        html += '<div class="facility-name">' + escapeHtml(fac.facility_name) + '</div>';
+        html += '<div>' + specialties.join('') + '<span class="badge badge-type">' + (typeLabels[fac.facility_type] || '') + '</span></div>';
+        html += '<div style="font-size:0.8rem; color:var(--muted); margin-top:2px;">' + escapeHtml(fac.city) + ' ' + escapeHtml(fac.district) + '</div>';
+
+        html += '<div class="facility-info">';
+        html += '<div>📍 ' + escapeHtml(fac.address) + '</div>';
+        html += '<div>📞 ' + escapeHtml(fac.phone) + '</div>';
+        html += '<div>ℹ️ 官方資料更新：' + escapeHtml(fac.official_source_updated_at) + '</div>';
+        html += '</div>';
+
+        // 展開詳情
+        html += '<div class="details-section" id="details_' + fac.facility_id + '">';
+
+        // 服務查證狀態
+        html += '<h2>服務查證狀態</h2>';
+        html += renderServiceStatus('肌電圖', fac.has_emg);
+        html += renderServiceStatus('神經傳導檢查', fac.has_nerve_conduction_study);
+        html += renderServiceStatus('物理治療', fac.has_physical_therapy);
+        html += renderServiceStatus('電療', fac.has_electrotherapy);
+        html += renderServiceStatus('需預約', fac.appointment_required);
+        html += '<p style="font-size:0.75rem; color:var(--muted); margin-top:8px;">「未確認」代表目前沒有可靠資訊，不代表沒有該服務。</p>';
+
+        if (fac.official_schedule_raw) {
+          html += '<h2 style="margin-top:12px;">官方看診時段</h2>';
+          html += '<p style="font-size:0.875rem;">' + escapeHtml(fac.official_schedule_raw) + '</p>';
+          html += '<p style="font-size:0.75rem; color:var(--muted);">實際時段請以院所公告為準。</p>';
+        }
+
+        if (fac.match_status && fac.match_status !== 'matched') {
+          html += '<div class="error-box" style="margin-top:8px;">⚠ Google 地點匹配不確定（信心度：' + escapeHtml(fac.match_confidence) + '）。地圖資訊可能不準確，建議直接使用上方地址搜尋。</div>';
+        }
+
+        html += '</div>';
+
+        // 動作按鈕
+        html += '<div class="action-buttons">';
+        html += '<a class="action-btn" href="tel:' + fac.phone.replace(/-/g, '') + '">📞 撥打</a>';
+        html += '<a class="action-btn" href="https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(fac.facility_name + ' ' + fac.address) + '" target="_blank">🗺️ Maps</a>';
+        html += '<a class="action-btn primary" href="https://www.google.com/maps/dir/?api=1&destination=' + encodeURIComponent(fac.address) + '" target="_blank">🧭 導航</a>';
+        html += '</div>';
+
+        html += '</div>';
+      });
+
+      resultsArea.innerHTML = html;
+    }
+
+    function renderServiceStatus(label, status) {
+      if (!status || status === 'unverified') {
+        return '<div class="status-badge status-unverified">？ ' + label + '：未確認</div><br>';
+      }
+      if (status === 'invalidated') {
+        return '<div class="status-badge status-invalid">✗ ' + label + '：已失效</div><br>';
+      }
+      var labels = {
+        official_website: '官方網站公開標示',
+        phone_confirmed: '院所電話確認',
+        written_confirmed: '院所人員書面確認',
+        user_reported_pending: '使用者回報待確認'
+      };
+      return '<div class="status-badge status-verified">✓ ' + label + '：' + (labels[status] || status) + '</div><br>';
+    }
+
+    function toggleDetails(id) {
+      var el = document.getElementById('details_' + id);
+      if (el) {
+        el.classList.toggle('show');
+        var btn = el.previousElementSibling || el.parentElement.querySelector('.expand-btn');
+      }
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    // 暴露給 onclick
+    window.toggleDetails = toggleDetails;
+
+    // 啟動
+    init();
+  </script>
+</body>
+</html>

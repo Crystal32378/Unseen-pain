@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>症狀整理工具｜看不見的痛</title>
+  <style>
+    :root {
+      --bg: #FAF7F2;
+      --fg: #3A3A38;
+      --card: #FFFFFF;
+      --primary: #5A7A9E;
+      --primary-fg: #FFFFFF;
+      --muted: #6B6B68;
+      --border: #E8E2D8;
+      --accent: #F0EBE0;
+      --calm: #E6EDF3;
+      --calm-fg: #4A6B8A;
+      --warm: #F3EDE0;
+      --warm-fg: #7A6B4A;
+      --radius: 12px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Noto Sans TC', 'Microsoft JhengHei', -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--fg);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .container {
+      max-width: 700px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 0.95rem;
+      margin-bottom: 24px;
+    }
+
+    .privacy-notice {
+      background: var(--calm);
+      color: var(--calm-fg);
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      font-size: 0.875rem;
+    }
+
+    .form-section {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-bottom: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .step-num {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: rgba(90, 122, 158, 0.1);
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.875rem;
+      flex-shrink: 0;
+    }
+
+    .section-header h2 {
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .hint {
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+
+    input[type="text"], textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg);
+      color: var(--fg);
+      font-size: 0.95rem;
+      font-family: inherit;
+    }
+
+    input:focus, textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    .chip-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .chip {
+      padding: 6px 14px;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: var(--card);
+      color: var(--muted);
+      font-size: 0.875rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .chip:hover { background: var(--accent); }
+
+    .chip.active {
+      background: var(--primary);
+      color: var(--primary-fg);
+      border-color: var(--primary);
+    }
+
+    .sensation-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+
+    .sensation-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      background: var(--card);
+      transition: all 0.2s;
+    }
+
+    .sensation-item:hover { background: var(--accent); }
+
+    .sensation-item.active {
+      border-color: var(--primary);
+      background: rgba(90, 122, 158, 0.05);
+    }
+
+    .checkbox {
+      width: 20px;
+      height: 20px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .sensation-item.active .checkbox {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: var(--primary-fg);
+    }
+
+    .sensation-item.active .checkbox::after {
+      content: '✓';
+      font-size: 0.75rem;
+    }
+
+    .sensation-label {
+      font-weight: 500;
+      font-size: 0.9rem;
+    }
+
+    .sensation-desc {
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+
+    .impact-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+
+    .impact-item {
+      padding: 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      text-align: center;
+      background: var(--card);
+      font-size: 0.875rem;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .impact-item:hover { background: var(--accent); }
+
+    .impact-item.active {
+      border-color: var(--primary);
+      background: rgba(90, 122, 158, 0.05);
+      color: var(--primary);
+    }
+
+    .summary-box {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-top: 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+
+    .summary-text {
+      font-size: 1rem;
+      line-height: 1.7;
+      white-space: pre-wrap;
+      min-height: 60px;
+    }
+
+    .action-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    .btn {
+      flex: 1;
+      min-width: 100px;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--card);
+      color: var(--fg);
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      text-align: center;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .btn:hover { background: var(--accent); }
+
+    .btn-primary {
+      background: var(--primary);
+      color: var(--primary-fg);
+      border-color: var(--primary);
+    }
+
+    .btn-primary:hover { opacity: 0.9; }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .disclaimer {
+      background: var(--warm);
+      color: var(--warm-fg);
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      margin-top: 16px;
+    }
+
+    .copied-msg {
+      display: none;
+      color: var(--primary);
+      font-size: 0.8rem;
+      margin-top: 8px;
+    }
+
+    @media print {
+      .no-print { display: none !important; }
+      body { background: white; }
+      .form-section, .action-buttons, .privacy-notice, .disclaimer { display: none; }
+      .summary-box { border: 1px solid #ccc; box-shadow: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>神經痛怎麼跟醫生說？看診前先記錄這些事</h1>
+    <p class="subtitle">把說不清楚的麻、刺、燒、觸電感，整理成可以帶進診間的一句話。</p>
+
+    <div class="privacy-notice">
+      🔒 這個工具只在你的瀏覽器中運作。你輸入的內容不會被儲存、不會送到伺服器、不會要求你的姓名或 Email。
+    </div>
+
+    <!-- 1. 疼痛位置 -->
+    <div class="form-section">
+      <div class="section-header">
+        <div class="step-num">1</div>
+        <h2>疼痛位置</h2>
+      </div>
+      <input type="text" id="painLocation" placeholder="例如：右手肘外側到小指、左大腿外側、臀部下方">
+      <div class="chip-group" id="sideGroup">
+        <button class="chip" data-value="左側">左側</button>
+        <button class="chip" data-value="右側">右側</button>
+        <button class="chip" data-value="雙側">雙側</button>
+        <button class="chip" data-value="不清楚">不清楚</button>
+      </div>
+    </div>
+
+    <!-- 2. 疼痛感覺 -->
+    <div class="form-section">
+      <div class="section-header">
+        <div class="step-num">2</div>
+        <h2>疼痛的感覺</h2>
+        <span class="hint">可以複選</span>
+      </div>
+      <div class="sensation-grid" id="sensationGrid">
+        <div class="sensation-item" data-key="numbness">
+          <div class="checkbox"></div>
+          <div>
+            <div class="sensation-label">麻</div>
+            <div class="sensation-desc">麻木、感覺鈍鈍的</div>
+          </div>
+        </div>
+        <div class="sensation-item" data-key="tingling">
+          <div class="checkbox"></div>
+          <div>
+            <div class="sensation-label">刺</div>
+            <div class="sensation-desc">針刺感、像被針扎</div>
+          </div>
+        </div>
+        <div class="sensation-item" data-key="burning">
+          <div class="checkbox"></div>
+          <div>
+            <div class="sensation-label">灼熱</div>
+            <div class="sensation-desc">燒灼感、像火燒</div>
+          </div>
+        </div>
+        <div class="sensation-item" data-key="electric">
+          <div class="checkbox"></div>
+          <div>
+            <div class="sensation-label">觸電</div>
+            <div class="sensation-desc">電流通過的感覺</div>
+          </div>
+        </div>
+        <div class="sensation-item" data-key="throbbing">
+          <div class="checkbox"></div>
+          <div>
+            <div class="sensation-label">抽痛</div>
+            <div class="sensation-desc">一陣一陣的抽痛</div>
+          </div>
+        </div>
+        <div class="sensation-item" data-key="crawling">
+          <div class="checkbox"></div>
+          <div>
+            <div class="sensation-label">螞蟻爬</div>
+            <div class="sensation-desc">皮膚上有東西在爬</div>
+          </div>
+        </div>
+        <div class="sensation-item" data-key="allodynia">
+          <div class="checkbox"></div>
+          <div>
+            <div class="sensation-label">輕碰就痛</div>
+            <div class="sensation-desc">正常不痛的觸摸也會痛</div>
+          </div>
+        </div>
+        <div class="sensation-item" data-key="sensationLoss">
+          <div class="checkbox"></div>
+          <div>
+            <div class="sensation-label">感覺下降</div>
+            <div class="sensation-desc">摸東西感覺變鈍</div>
+          </div>
+        </div>
+        <div class="sensation-item" data-key="weakness">
+          <div class="checkbox"></div>
+          <div>
+            <div class="sensation-label">無力</div>
+            <div class="sensation-desc">使不上力</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. 時間與模式 -->
+    <div class="form-section">
+      <div class="section-header">
+        <div class="step-num">3</div>
+        <h2>時間與模式</h2>
+      </div>
+      <div style="margin-bottom: 12px;">
+        <label style="font-size: 0.875rem; font-weight: 500; display: block; margin-bottom: 6px;">大約什麼時候開始？</label>
+        <input type="text" id="startTime" placeholder="例如：五天前、三個月前、去年冬天">
+      </div>
+      <div style="margin-bottom: 12px;">
+        <label style="font-size: 0.875rem; font-weight: 500; display: block; margin-bottom: 6px;">疼痛的模式</label>
+        <div class="chip-group" id="patternGroup">
+          <button class="chip" data-value="持續">持續</button>
+          <button class="chip" data-value="間歇性">間歇性</button>
+          <button class="chip" data-value="一陣一陣">一陣一陣</button>
+          <button class="chip" data-value="不確定">不確定</button>
+        </div>
+      </div>
+      <div>
+        <label style="font-size: 0.875rem; font-weight: 500; display: block; margin-bottom: 6px;">什麼情況下會更明顯？（可選）</label>
+        <input type="text" id="triggerPosture" placeholder="例如：久站後、彎腰時、晚上睡覺時、走路的時候">
+      </div>
+    </div>
+
+    <!-- 4. 對生活的影響 -->
+    <div class="form-section">
+      <div class="section-header">
+        <div class="step-num">4</div>
+        <h2>對生活的影響</h2>
+        <span class="hint">可以複選</span>
+      </div>
+      <div class="impact-grid" id="impactGrid">
+        <div class="impact-item" data-key="impactSleep">影響睡眠</div>
+        <div class="impact-item" data-key="impactWork">影響工作</div>
+        <div class="impact-item" data-key="impactWalking">影響走路</div>
+        <div class="impact-item" data-key="impactGrip">影響握力</div>
+      </div>
+    </div>
+
+    <!-- 5. 曾做過的檢查 -->
+    <div class="form-section">
+      <div class="section-header">
+        <div class="step-num">5</div>
+        <h2>曾做過的檢查與治療</h2>
+        <span class="hint">可選</span>
+      </div>
+      <textarea id="previousExams" rows="3" placeholder="例如：做過頸部 X 光、吃過止痛藥、做過物理治療三次..."></textarea>
+    </div>
+
+    <!-- 6. 其他補充 -->
+    <div class="form-section">
+      <div class="section-header">
+        <div class="step-num">6</div>
+        <h2>其他想補充的</h2>
+        <span class="hint">可選</span>
+      </div>
+      <textarea id="otherNotes" rows="3" placeholder="任何你覺得醫師應該知道的事..."></textarea>
+    </div>
+
+    <!-- 摘要 -->
+    <div class="summary-box">
+      <h2 style="margin-bottom: 12px;">📋 看診用的摘要</h2>
+      <div class="summary-text" id="summaryText">填寫上面的欄位後，這裡會自動產生一段可以帶進診間的描述。</div>
+
+      <div class="action-buttons no-print">
+        <button class="btn btn-primary" id="copyBtn" disabled>📋 複製文字</button>
+        <button class="btn" id="printBtn" disabled>🖨️ 列印</button>
+        <button class="btn" id="clearBtn">↻ 清除</button>
+      </div>
+
+      <div class="copied-msg" id="copiedMsg">✓ 已複製到剪貼簿</div>
+    </div>
+
+    <div class="disclaimer">
+      <strong>提醒：</strong>這個工具只幫你整理描述，不會判斷你的症狀是不是神經痛，也不會推薦治療方式。實際診斷與治療請由醫師評估。
+    </div>
+  </div>
+
+  <script>
+    var state = {
+      painLocation: '',
+      side: '',
+      numbness: false, tingling: false, burning: false, electric: false,
+      throbbing: false, crawling: false, allodynia: false, sensationLoss: false, weakness: false,
+      startTime: '',
+      pattern: '',
+      triggerPosture: '',
+      impactSleep: false, impactWork: false, impactWalking: false, impactGrip: false,
+      previousExams: '',
+      otherNotes: ''
+    };
+
+    var sensationLabels = {
+      numbness: '麻', tingling: '刺', burning: '灼熱', electric: '觸電感',
+      throbbing: '抽痛', crawling: '螞蟻爬感', allodynia: '輕觸異常疼痛',
+      sensationLoss: '感覺下降', weakness: '無力'
+    };
+
+    function init() {
+      // 文字輸入
+      document.getElementById('painLocation').addEventListener('input', function() { state.painLocation = this.value; updateSummary(); });
+      document.getElementById('startTime').addEventListener('input', function() { state.startTime = this.value; updateSummary(); });
+      document.getElementById('triggerPosture').addEventListener('input', function() { state.triggerPosture = this.value; updateSummary(); });
+      document.getElementById('previousExams').addEventListener('input', function() { state.previousExams = this.value; updateSummary(); });
+      document.getElementById('otherNotes').addEventListener('input', function() { state.otherNotes = this.value; updateSummary(); });
+
+      // Chip 群組
+      bindChipGroup('sideGroup', function(val) { state.side = val; updateSummary(); });
+      bindChipGroup('patternGroup', function(val) { state.pattern = val; updateSummary(); });
+
+      // 感覺選項
+      var sensations = document.querySelectorAll('.sensation-item');
+      sensations.forEach(function(item) {
+        item.addEventListener('click', function() {
+          var key = this.dataset.key;
+          state[key] = !state[key];
+          this.classList.toggle('active');
+          updateSummary();
+        });
+      });
+
+      // 影響選項
+      var impacts = document.querySelectorAll('.impact-item');
+      impacts.forEach(function(item) {
+        item.addEventListener('click', function() {
+          var key = this.dataset.key;
+          state[key] = !state[key];
+          this.classList.toggle('active');
+          updateSummary();
+        });
+      });
+
+      // 動作按鈕
+      document.getElementById('copyBtn').addEventListener('click', copyText);
+      document.getElementById('printBtn').addEventListener('click', function() { window.print(); });
+      document.getElementById('clearBtn').addEventListener('click', clearAll);
+    }
+
+    function bindChipGroup(id, callback) {
+      var group = document.getElementById(id);
+      var chips = group.querySelectorAll('.chip');
+      chips.forEach(function(chip) {
+        chip.addEventListener('click', function() {
+          var wasActive = this.classList.contains('active');
+          chips.forEach(function(c) { c.classList.remove('active'); });
+          if (!wasActive) {
+            this.classList.add('active');
+            callback(this.dataset.value);
+          } else {
+            callback('');
+          }
+        });
+      });
+    }
+
+    function generateSummary() {
+      var parts = [];
+
+      if (state.painLocation) {
+        var loc = state.painLocation;
+        if (state.side && state.side !== '不清楚') {
+          loc = state.side + '的' + loc;
+        }
+        parts.push('我的' + loc);
+      }
+
+      if (state.startTime) {
+        if (parts.length > 0) {
+          parts[parts.length - 1] = parts[parts.length - 1] + '自' + state.startTime + '開始出現';
+        } else {
+          parts.push('自' + state.startTime + '開始出現症狀');
+        }
+      }
+
+      var sensations = [];
+      for (var key in sensationLabels) {
+        if (state[key]) sensations.push(sensationLabels[key]);
+      }
+      if (sensations.length > 0) {
+        var pattern = state.pattern && state.pattern !== '不確定' ? state.pattern + '的' : '';
+        parts.push('有' + pattern + sensations.join('與') + '的感覺');
+      }
+
+      if (state.triggerPosture) {
+        var trigger = state.triggerPosture.trim();
+        if (trigger.endsWith('後') || trigger.endsWith('時')) {
+          parts.push(trigger + '較明顯');
+        } else {
+          parts.push(trigger + '時較明顯');
+        }
+      }
+
+      var impacts = [];
+      if (state.impactSleep) impacts.push('睡眠');
+      if (state.impactWork) impacts.push('工作');
+      if (state.impactWalking) impacts.push('走路');
+      if (state.impactGrip) impacts.push('握力');
+      if (impacts.length > 0) {
+        parts.push('會影響' + impacts.join('、'));
+      }
+
+      if (state.previousExams) {
+        parts.push('曾做過：' + state.previousExams);
+      }
+
+      if (state.otherNotes) {
+        parts.push('補充：' + state.otherNotes);
+      }
+
+      if (parts.length === 0) return '';
+
+      var result = parts.join('，');
+      if (!result.endsWith('。')) result += '。';
+      return result;
+    }
+
+    function updateSummary() {
+      var summary = generateSummary();
+      var textEl = document.getElementById('summaryText');
+      var copyBtn = document.getElementById('copyBtn');
+      var printBtn = document.getElementById('printBtn');
+
+      if (summary) {
+        textEl.textContent = summary;
+        copyBtn.disabled = false;
+        printBtn.disabled = false;
+      } else {
+        textEl.textContent = '填寫上面的欄位後，這裡會自動產生一段可以帶進診間的描述。';
+        copyBtn.disabled = true;
+        printBtn.disabled = true;
+      }
+    }
+
+    function copyText() {
+      var text = document.getElementById('summaryText').textContent;
+      if (!text) return;
+
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(function() {
+          showCopied();
+        }).catch(function() {
+          fallbackCopy(text);
+        });
+      } else {
+        fallbackCopy(text);
+      }
+    }
+
+    function fallbackCopy(text) {
+      var textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+        document.execCommand('copy');
+        showCopied();
+      } catch (e) {
+        alert('複製失敗，請手動選取文字複製。');
+      }
+      document.body.removeChild(textarea);
+    }
+
+    function showCopied() {
+      var msg = document.getElementById('copiedMsg');
+      msg.style.display = 'block';
+      setTimeout(function() { msg.style.display = 'none'; }, 2000);
+    }
+
+    function clearAll() {
+      if (!confirm('確定要清除所有已填寫的內容嗎？')) return;
+
+      // 清除狀態
+      for (var key in state) {
+        if (typeof state[key] === 'boolean') state[key] = false;
+        else state[key] = '';
+      }
+
+      // 清除 UI
+      document.getElementById('painLocation').value = '';
+      document.getElementById('startTime').value = '';
+      document.getElementById('triggerPosture').value = '';
+      document.getElementById('previousExams').value = '';
+      document.getElementById('otherNotes').value = '';
+
+      document.querySelectorAll('.chip.active').forEach(function(c) { c.classList.remove('active'); });
+      document.querySelectorAll('.sensation-item.active').forEach(function(c) { c.classList.remove('active'); });
+      document.querySelectorAll('.impact-item.active').forEach(function(c) { c.classList.remove('active'); });
+
+      updateSummary();
+    }
+
+    init();
+  </script>
+</body>
+</html>
