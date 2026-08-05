@@ -78,7 +78,7 @@ export function HomeSection({ onNavigate }: HomeSectionProps) {
           <EntryCard
             number="3"
             title="找附近的神經科與復健科"
-            description="依縣市、行政區或目前位置搜尋全台健保特約院所。資料來自健保署公開資料，可撥打電話、開啟導航。"
+            description="依縣市與行政區搜尋具正式神經科或復健科的健保特約醫院。資料來自健保署公開資料，可撥打電話、開啟導航；目前位置排序尚未開放。"
             actionLabel="搜尋院所"
             onClick={() => onNavigate("search")}
           />

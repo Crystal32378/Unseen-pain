@@ -65,7 +65,7 @@ const SENSATIONS = [
   { key: "numbness", label: "麻", desc: "麻木、感覺鈍鈍的" },
   { key: "tingling", label: "刺", desc: "針刺感、像被針扎" },
   { key: "burning", label: "灼熱", desc: "燒灼感、像火燒" },
-  { key: "electric", label: "觸電", desc: "電流通过的感覺" },
+  { key: "electric", label: "觸電", desc: "電流通過的感覺" },
   { key: "throbbing", label: "抽痛", desc: "一陣一陣的抽痛" },
   { key: "crawling", label: "螞蟻爬", desc: "皮膚上有東西在爬" },
   { key: "allodynia", label: "輕碰就痛", desc: "正常不痛的觸摸也會痛" },
