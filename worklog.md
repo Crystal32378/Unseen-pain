@@ -68,6 +68,7 @@ Work Log:
 - 沿用現有色彩 token（--primary, --alert, --calm, --warm）與 shadcn/ui 元件
 - 更新 .env.example：補充 DATABASE_URL / AUTH_SECRET / GOOGLE_CLIENT_* / ADMIN_EMAILS 完整說明
 - 更新 README：新增 anonymous-stories 功能完整章節
+- 2026-08-06：Neon 已連接 Vercel，DATABASE_URL、Google OAuth 與 ADMIN_EMAILS 已設定，觸發 Preview 重新部署驗證。
 
 Stage Summary:
 - Lint 通過、build 通過、9 個路由全部正確生成
