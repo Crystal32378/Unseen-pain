@@ -1,81 +1,65 @@
-# 健保署真實院所資料同步｜最短驗證流程
+# 健保署真實院所資料同步｜MVP 最短驗證流程
 
-> 本流程採「先讀取、再預覽、最後才寫入」。前三個測試步驟不會修改院所資料。
+> MVP 唯一正式同步來源：`download/apps-script/00_OneFilePreviewAndSync.gs`（版本 1.1.0）。
+> 請不要把 `02_SyncNHI.gs` 放入同一個 Apps Script 專案；它已從本 PR 移除，避免 `previewNhiSync()`、`syncNhiData()` 等同名函式衝突。
 
-## 使用檔案
+## MVP Apps Script 檔案
 
-將下列檔案放在同一個 Google Apps Script 專案：
+- `01_InitSheet.gs`：建立 Sheet 結構與 `SHEET_CONFIG`。
+- `00_SetupSafe.gs`：不覆寫既有資料的安全初始化。
+- `00_OneFilePreviewAndSync.gs`：唯一正式同步來源，入口只有 `previewNhiSync()` 與 `syncNhiData()`。
+- `01_ReadOnlyWebApi.gs`：Vercel 使用的唯讀 FACILITIES API；它是 MVP API 專案唯一的 `doGet`。
+- `00_TestNHIJson.gs`：可選的唯讀連線診斷。
 
-- `01_InitSheet.gs`
-- `00_SetupSafe.gs`
-- `02_SyncNHI.gs`
-- `03_PlacesMatch.gs`
-- `04_SearchWebApp.html`
-- `05_SymptomTool.html`
-- `06_Code.gs`
+`06_Code.gs`、`03_PlacesMatch.gs`、`04_SearchWebApp.html`、`05_SymptomTool.html` 屬於後續 Google Sites／Places 工作，本輪不要和 MVP API 檔案混在同一個 Web App 專案中。
 
 ## 執行順序
 
-### 1. 官方資源連線測試（不寫入）
-
-執行：`testNhiResources()`
-
-成功條件：
-
-- 四個資源均顯示 HTTP 200
-- 必要欄位全部存在
-- 最後顯示「四個官方資源皆可讀取」
-
-### 2. 安全建立工作表
+### 1. 安全建立工作表
 
 執行：`setupDatabaseSafe()`
 
-此函式只建立缺少的工作表及欄位，不會清除既有院所資料，也不會覆寫既有 `CONTENT_CONFIG`。
+確認既有工作表與資料被保留。
 
-### 3. 檢查資料庫結構（不寫入院所）
+### 2. 檢查資料庫結構
 
 執行：`verifyDatabaseStructureSafe()`
 
-成功條件：顯示「所有工作表與欄位結構正確」。
+成功條件：所有工作表與欄位結構正確。
 
-### 4. 完整同步預覽（不寫入）
+### 3. 完整同步預覽（不寫入）
 
 執行：`previewNhiSync()`
 
-請保留下列紀錄：
+請記錄主檔院所數、科別明細數、神經／復健科數量、前 5 筆與耗時。
 
-- 主檔院所數
-- 診所補充資料數
-- 科別明細數
-- 科別代碼數
-- 神經科／復健科活躍院所總數
-- 神經科院所數
-- 復健科院所數
-- 同時具有兩科的院所數
-- 前 5 筆資料
+### 4. 正式同步
 
-### 5. 正式同步
-
-只有前四步皆成功後，才執行：`syncNhiData()`
+只有預覽結果合理後，才執行：`syncNhiData()`
 
 安全機制：
 
-- 篩選結果低於 50 筆時自動停止，不寫入 Sheet
-- 以 `nhi_facility_code` 作為唯一鍵
-- 診所資料只補充服務項目與看診時段，不會和院所主檔重複新增
-- 舊資料中已消失的院所保留並標記為 `inactive`
-- 使用批次寫入，避免逐列 `appendRow()` 造成逾時
+- 篩選結果低於 50 筆時停止，不寫入。
+- 以 `nhi_facility_code` 去重。
+- 舊資料中消失的院所保留並標記為 `inactive`。
+- 使用批次寫入。
 
-### 6. 驗收
+### 5. 部署唯讀 API
+
+將 `01_ReadOnlyWebApi.gs` 加入同一個綁定 Google Sheet 的 Apps Script 專案，並部署為 Web App。
+
+執行身分：我；存取權：任何人。
+
+確認 `?action=health` 回傳 `ok: true`，再把該 URL 設定到 Vercel 的 `FACILITY_API_URL`。
+
+## 驗收紀錄
 
 確認：
 
-- `SYNC_LOG.error_count = 0`
-- `FACILITIES` 有真實院所資料
-- `active_status` 為 `active`
-- `specialty_neurology` 或 `specialty_rehabilitation` 至少一項為 TRUE
-- 搜尋器可依縣市、行政區和科別回傳結果
+- `SYNC_LOG.error_count = 0`。
+- `FACILITIES` 有正式院所資料。
+- `active_status` 為 `active`。
+- `specialty_neurology` 或 `specialty_rehabilitation` 至少一項為 TRUE。
+- API 可依縣市、行政區與科別回傳結果。
 
-## 目前狀態
-
-程式碼已完成靜態語法檢查與純函式測試；仍需在 Crystal 的 Google Apps Script 帳號中完成實際連線、資料量與執行時間驗證。未完成實際執行前，不得聲稱正式同步已完成。
+未完成上述驗證前，不得宣稱正式同步已完成。
