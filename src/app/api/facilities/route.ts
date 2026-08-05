@@ -1,8 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const DEFAULT_FACILITY_API_URL =
-  "https://script.google.com/macros/s/AKfycbyNScLDsLWzOanT632xB0HF13QO8-tEIBYx_pf_wsdk-BUZghwpKb6vMV6fhcfQOU53/exec";
-
 const ALLOWED_ACTIONS = new Set(["health", "cities", "districts", "search"]);
 const ALLOWED_PARAMS = new Set([
   "action",
@@ -18,7 +15,18 @@ const ALLOWED_PARAMS = new Set([
 export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
-  const endpoint = process.env.FACILITY_API_URL || DEFAULT_FACILITY_API_URL;
+  const endpoint = process.env.FACILITY_API_URL;
+
+  if (!endpoint) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error: "院所資料服務尚未設定。",
+        code: "FACILITY_API_NOT_CONFIGURED",
+      },
+      { status: 500 }
+    );
+  }
   const incoming = request.nextUrl.searchParams;
   const action = incoming.get("action") || "search";
 
