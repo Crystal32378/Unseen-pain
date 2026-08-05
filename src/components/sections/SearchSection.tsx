@@ -66,10 +66,12 @@ export function SearchSection() {
   const [isLoading, setIsLoading] = useState(false);
   const [isDistrictLoading, setIsDistrictLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [districtError, setDistrictError] = useState<string | null>(null);
 
   const handleCityChange = useCallback(async (city: string) => {
     setFilters((prev) => ({ ...prev, city, district: "" }));
     setAvailableDistricts([]);
+    setDistrictError(null);
 
     if (!city) return;
 
@@ -89,6 +91,7 @@ export function SearchSection() {
     } catch (districtError) {
       console.error("District lookup failed", districtError);
       setAvailableDistricts([]);
+      setDistrictError("行政區資料暫時無法讀取，請稍後再試。");
     } finally {
       setIsDistrictLoading(false);
     }
@@ -181,10 +184,14 @@ export function SearchSection() {
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
-            <label className="mb-2 block text-sm font-medium text-foreground">
+            <label
+              htmlFor="facility-city"
+              className="mb-2 block text-sm font-medium text-foreground"
+            >
               縣市
             </label>
             <select
+              id="facility-city"
               value={filters.city}
               onChange={(event) => void handleCityChange(event.target.value)}
               className="w-full rounded-lg border border-input bg-background px-4 py-2.5 text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
@@ -198,10 +205,14 @@ export function SearchSection() {
             </select>
           </div>
           <div>
-            <label className="mb-2 block text-sm font-medium text-foreground">
+            <label
+              htmlFor="facility-district"
+              className="mb-2 block text-sm font-medium text-foreground"
+            >
               行政區
             </label>
             <select
+              id="facility-district"
               value={filters.district}
               onChange={(event) =>
                 setFilters((prev) => ({
@@ -221,6 +232,11 @@ export function SearchSection() {
                 </option>
               ))}
             </select>
+            {districtError && (
+              <p role="alert" className="mt-1.5 text-xs text-alert-foreground">
+                {districtError}
+              </p>
+            )}
           </div>
         </div>
 
