@@ -2,6 +2,7 @@
 
 > 本指南帶你從零開始，完成 Google Sites + Apps Script + Sheets 的完整部署。
 > Crystal 需要親自操作的步驟已壓縮到最少。
+> MVP 邊界：`00_OneFilePreviewAndSync.gs` 是唯一正式同步來源；`01_ReadOnlyWebApi.gs` 是 Vercel 唯讀 API 的唯一 `doGet`。請勿把 `02_SyncNHI.gs` 或後續 Places／Google Sites Web App 檔案混入同一個 MVP API 專案。
 
 ---
 
@@ -53,7 +54,7 @@ Phase 7: 測試與發布
 ### 步驟 1.4：貼入其他 .gs 檔案
 1. 在 Apps Script 編輯器左側，點選「+」新增指令碼檔案
 2. 依序新增並貼入：
-   - `02_SyncNHI.gs`（同步健保署資料）
+   - `00_OneFilePreviewAndSync.gs`（同步健保署資料）
    - `03_PlacesMatch.gs`（Places API 匹配）
    - `06_Code.gs`（Web App 入口）
 3. 每個檔案都儲存
