@@ -9,6 +9,7 @@ import { SearchSection } from "@/components/sections/SearchSection";
 import { CrystalStorySection } from "@/components/sections/CrystalStorySection";
 import { EmergencySection } from "@/components/sections/EmergencySection";
 import { AboutSection } from "@/components/sections/AboutSection";
+import { StoriesEntrySection } from "@/components/stories/StoriesEntrySection";
 import { SectionId } from "@/lib/types";
 
 export default function Home() {

@@ -2,6 +2,7 @@
 
 import { SectionId } from "@/lib/types";
 import { AlertTriangle, ArrowRight } from "lucide-react";
+import { StoriesEntrySection } from "@/components/stories/StoriesEntrySection";
 
 interface HomeSectionProps {
   onNavigate: (section: SectionId) => void;
@@ -98,6 +99,9 @@ export function HomeSection({ onNavigate }: HomeSectionProps) {
           「有人認得這種痛，你可以從這裡開始。」
         </p>
       </section>
+
+      {/* 匿名就醫經驗分享入口 */}
+      <StoriesEntrySection />
 
       {/* What this site is / is not */}
       <section className="grid gap-6 sm:grid-cols-2">

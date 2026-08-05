@@ -9,7 +9,10 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  // Production: Neon Postgres (Vercel Marketplace).
+  // Connection string MUST live only in Vercel Environment Variables (DATABASE_URL).
+  // Never commit real credentials to GitHub.
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -29,4 +32,58 @@ model Post {
   authorId  String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+/// 匿名就醫經驗分享
+/// 收集曾經歷神經痛／不明疼痛就醫過程者的匿名投稿。
+/// 所有投稿預設為 pending，必須由管理者手動審核為 approved 才會公開。
+model AnonymousStory {
+  /// CUID 主鍵，不與任何個人識別資訊關聯
+  id                 String            @id @default(cuid())
+
+  /// 選填。投稿者自選的匿名稱呼，例如「肩膀痛了半年的人」。
+  /// 不可包含真實姓名、電話、Email、病歷號或可辨識個人的描述。
+  anonymousName      String?
+
+  /// 當時出現什麼感覺或症狀（必填）
+  symptomDescription String
+
+  /// 一開始是否知道要看哪一科／第一站去了哪一科（選填）
+  firstDepartment    String?
+
+  /// 曾被安排哪些檢查，例如誘發電位、肌電圖、神經傳導檢查（選填，自由文字）
+  examinations       String?
+
+  /// 過程中的就醫旅程描述（選填）
+  careJourney        String?
+
+  /// 過程中哪個資訊幫助自己理解下一步（選填）
+  helpfulInformation String?
+
+  /// 想對同樣說不清楚疼痛的人說什麼（選填）
+  messageToOthers    String?
+
+  /// 選填。縣市，僅用於地區分布參考，不可包含詳細地址
+  city               String?
+
+  /// 審核狀態：pending（預設）/ approved / rejected / hidden
+  moderationStatus   ModerationStatus  @default(pending)
+
+  /// 被檢舉次數。每次檢舉 +1，由管理者決定是否轉為 hidden
+  reportCount        Int               @default(0)
+
+  /// 建立時間（投稿時間）
+  createdAt          DateTime          @default(now())
+
+  /// 核准時間，僅在 status 變更為 approved 時填入
+  approvedAt         DateTime?
+
+  @@index([moderationStatus, createdAt(sort: Desc)])
+}
+
+enum ModerationStatus {
+  pending
+  approved
+  rejected
+  hidden
 }

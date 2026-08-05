@@ -37,3 +37,50 @@ Stage Summary:
 - Crystal 需要親自操作的步驟壓縮到 5 步（登入/授權/貼 API Key/嵌入網址/發布）
 - 所有交付項目位於 /home/z/my-project/download/
 - Lint 檢查通過，dev server 正常運行
+
+---
+Task ID: anonymous-stories
+Agent: Super Z (主代理)
+Task: 新增「匿名就醫經驗分享」功能 — 安全可審核 MVP
+
+Work Log:
+- 切 anonymous-stories branch（從 main）
+- 升級 Prisma datasource 從 SQLite 改為 postgresql（Neon Postgres via Vercel Marketplace）
+- 新增 AnonymousStory model 與 ModerationStatus enum
+- 安裝 next-auth@5.0.0-beta.32 (Auth.js v5)
+- 建立 src/auth.ts：Google provider + JWT strategy + ADMIN_EMAILS allowlist
+- 建立 src/proxy.ts（Next.js 16，取代 deprecated middleware.ts）保護 /admin/* 與 /api/admin/*
+- 建立 src/lib/admin-auth.ts：requireAdmin() helper，每個 admin API route 獨立再驗證（縱深防禦）
+- 建立 src/lib/stories.ts：Zod schema、PII 偵測、PII/禁用詞警告
+- 建立 src/lib/rate-limit.ts：honeypot + 時間檢查 + 簽章 cookie 限流（不存 IP）
+- 建立 4 個 API routes：
+  - GET/POST /api/stories
+  - POST /api/stories/[id]/report
+  - GET /api/admin/stories
+  - PATCH/DELETE /api/admin/stories/[id]
+- 建立 3 個前台頁面：
+  - /stories（server component，直接打 DB）
+  - /stories/submit
+  - /stories/submit/success
+- 建立 StoriesShell client wrapper（解決 server component 不能傳 function 給 NavBar 的問題）
+- 建立 admin 登入頁 /admin/signin 與審核頁 /admin/stories
+- 建立 StoriesEntrySection 並插入首頁 HomeSection「過來人經驗」之後
+- 沿用現有色彩 token（--primary, --alert, --calm, --warm）與 shadcn/ui 元件
+- 更新 .env.example：補充 DATABASE_URL / AUTH_SECRET / GOOGLE_CLIENT_* / ADMIN_EMAILS 完整說明
+- 更新 README：新增 anonymous-stories 功能完整章節
+
+Stage Summary:
+- Lint 通過、build 通過、9 個路由全部正確生成
+- 本機 dev 測試通過：
+  - honeypot 命中 → 200 OK + fake:true（靜默丟棄，不寫 DB）
+  - 表單秒填 → 429 too_fast
+  - 缺欄位 → 400 validation_error
+  - /admin/signin → 200（已修正原本的 redirect loop）
+  - /admin/stories 未登入 → 307 重導到 /admin/signin?callbackUrl=...
+  - /api/admin/stories 未登入 → 401
+- 安全設計：
+  - 三層縱深防禦（proxy → requireAdmin → signIn callback）
+  - 不存 IP、不存使用者識別（檢舉亦然）
+  - 簽章 cookie 限流使用 AUTH_SECRET HMAC-SHA256
+  - report_count >= 5 自動隱藏
+- 完全沒有碰：健保署資料、Apps Script、院所搜尋邏輯、main branch、nhi-sync-hardening、live-data-frontend
