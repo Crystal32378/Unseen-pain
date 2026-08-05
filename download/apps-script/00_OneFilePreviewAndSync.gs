@@ -1,6 +1,7 @@
 /**
  * 看不見的痛｜神經痛院所資料庫
- * 單檔版：先執行 previewNhiSync()，確認後才執行 syncNhiData()
+ * MVP 唯一正式同步來源（版本 1.1.0）。先執行 previewNhiSync()，確認後才執行 syncNhiData()
+ * 請勿與 02_SyncNHI.gs 同時加入同一個 Apps Script 專案；該多檔版已移除以避免同名函式衝突。
  */
 
 const APP_CONFIG = {
