@@ -22,7 +22,7 @@ Work Log:
 - 修正症狀摘要的文法問題（「久站後時較明顯」→「久站後較明顯」）
 - 建立 6 個 Apps Script 生產程式碼檔案：
   - 01_InitSheet.gs（一鍵建立 5 個工作表 + 欄位 + 格式）
-  - 02_SyncNHI.gs（健保署資料下載/解析/合併/篩選/Upsert）
+  - 00_OneFilePreviewAndSync.gs（健保署資料下載/解析/合併/篩選/Upsert）
   - 03_PlacesMatch.gs（Places API 匹配 + API Key 管理 + 配額控管）
   - 04_SearchWebApp.html（可嵌入 Google Sites 的搜尋器 HTML）
   - 05_SymptomTool.html（症狀整理工具 HTML）

@@ -26,12 +26,14 @@
 - **內容**：7 個頁面區段、症狀整理工具、院所搜尋器（使用模擬資料）
 
 ### 2. Google Apps Script 生產程式碼
+> MVP 只使用 `00_OneFilePreviewAndSync.gs` 作為同步入口，並以 `01_ReadOnlyWebApi.gs` 提供 Vercel 唯讀 API；`06_Code.gs` 與 Places 相關檔案暫不納入本輪部署。
+
 - **路徑**：`download/apps-script/`
 - **檔案**：
   | 檔案 | 功能 |
   |------|------|
   | `01_InitSheet.gs` | 一鍵建立 Google Sheet 資料庫結構（5 個工作表 + 欄位 + 格式） |
-  | `02_SyncNHI.gs` | 匯入健保署公開資料、篩選神經科與復健科、去重、Upsert |
+  | `00_OneFilePreviewAndSync.gs` | MVP 唯一正式同步來源：預覽、篩選、去重與批次 Upsert |
   | `03_PlacesMatch.gs` | Google Places API 匹配、API Key 管理、配額控管 |
   | `04_SearchWebApp.html` | 可嵌入 Google Sites 的院所搜尋器介面 |
   | `05_SymptomTool.html` | 症狀整理工具介面（純瀏覽器端） |
@@ -68,7 +70,7 @@
 ┌─────────────────────────────────────────────────────────┐
 │                 Google Apps Script                       │
 │  ├─ 06_Code.gs       (Web App 入口 + 搜尋 API)          │
-│  ├─ 02_SyncNHI.gs    (健保署資料同步)                   │
+│  ├─ 00_OneFilePreviewAndSync.gs    (健保署資料同步)                   │
 │  ├─ 03_PlacesMatch.gs (Places API 匹配)                │
 │  └─ 01_InitSheet.gs  (資料庫初始化)                     │
 └──────────┬──────────────────────────┬───────────────────┘

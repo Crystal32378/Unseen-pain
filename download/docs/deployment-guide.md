@@ -2,6 +2,8 @@
 
 > 本指南帶你從零開始，完成 Google Sites + Apps Script + Sheets 的完整部署。
 > Crystal 需要親自操作的步驟已壓縮到最少。
+> MVP 邊界：`00_OneFilePreviewAndSync.gs` 是唯一正式同步來源；`01_ReadOnlyWebApi.gs` 是 Vercel 唯讀 API 的唯一 `doGet`。請勿把 `02_SyncNHI.gs` 或後續 Places／Google Sites Web App 檔案混入同一個 MVP API 專案。
+> 本輪只執行 Sheet 同步與 Vercel 唯讀 API；Google Places、Google Sites 舊版 Web App 與匿名分享不在本 PR 執行。
 
 ---
 
@@ -41,29 +43,26 @@ Phase 7: 測試與發布
 2. 打開 `download/apps-script/01_InitSheet.gs`
 3. 全選複製，貼入 `Code.gs`
 4. 點選「儲存」(Ctrl+S)
-5. 在函式下拉選單中選擇 `setupDatabase`
+5. 在函式下拉選單中選擇 `setupDatabaseSafe`
 6. 點選「執行」
 7. 第一次執行時需要授權：
    - 點選「查看權限」
    - 選擇你的 Google 帳號
    - 點選「進階 > 前往專案（不安全）」
    - 點選「允許」
-8. 執行完成後，回到試算表，你會看到 5 個工作表已自動建立
+8. 執行完成後，回到試算表，確認既有資料沒有被覆寫，必要時執行 `verifyDatabaseStructureSafe()`
 
-### 步驟 1.4：貼入其他 .gs 檔案
-1. 在 Apps Script 編輯器左側，點選「+」新增指令碼檔案
-2. 依序新增並貼入：
-   - `02_SyncNHI.gs`（同步健保署資料）
-   - `03_PlacesMatch.gs`（Places API 匹配）
-   - `06_Code.gs`（Web App 入口）
-3. 每個檔案都儲存
+### 步驟 1.4：貼入 MVP Apps Script 檔案
+在同一個綁定 Google Sheet 的 MVP 專案中，只加入以下檔案：
+- `00_SetupSafe.gs`（安全初始化）
+- `00_OneFilePreviewAndSync.gs`（唯一正式同步來源，版本 1.1.0）
+- `01_ReadOnlyWebApi.gs`（Vercel 使用的唯一 `doGet`）
+- `00_TestNHIJson.gs`（可選的唯讀連線診斷）
 
-### 步驟 1.5：貼入 HTML 檔案
-1. 點選「+」>「HTML」新增 HTML 檔案
-2. 依序新增並貼入：
-   - `04_SearchWebApp.html`（搜尋器介面）
-   - `05_SymptomTool.html`（症狀工具介面）
-3. 檔案名稱必須完全一致（不含副檔名時）
+請勿加入 `02_SyncNHI.gs`、`06_Code.gs`、`03_PlacesMatch.gs`，也不要把 Google Sites HTML 檔案放進這個 MVP API 專案。每個檔案都儲存。
+
+### 步驟 1.5：Google Sites 與 HTML（本輪延後）
+`04_SearchWebApp.html`、`05_SymptomTool.html`、`06_Code.gs` 屬於舊版 Google Sites Web App。它們不在本輪 MVP API 專案中，請保留在延後範圍，待後續另立專案並重新驗證。
 
 ---
 
@@ -84,104 +83,32 @@ Phase 7: 測試與發布
 3. 確認有資料，且 `specialty_neurology` 或 `specialty_rehabilitation` 欄位有 true 值
 4. 查看 `SYNC_LOG` 工作表，確認同步紀錄
 
-### 步驟 2.3：顯示儀表板
-1. 在 Apps Script 中執行 `showDashboard`
-2. 查看記錄中的統計資訊
+### 步驟 2.3：檢查同步結果
+1. 在 Apps Script 中查看 `previewNhiSync()` 或 `syncNhiData()` 的執行記錄
+2. 確認 `FACILITIES` 筆數、神經／復健科旗標與 `SYNC_LOG.error_count`
+3. 若結果合理，再部署 `01_ReadOnlyWebApi.gs`
 
 ---
 
-## Phase 3: 設定 Google Cloud 與 Places API
+## Phase 3: Google Places（本輪延後）
 
-> 詳細步驟請見 `google-cloud-setup.md`
-
-### 簡要步驟：
-1. 前往 [Google Cloud Console](https://console.cloud.google.com)
-2. 建立新專案「unseen-pain-nav」
-3. 啟用 Places API (New)
-4. 建立 API Key
-5. 設定 API 限制（只啟用 Places API）
-6. 設定應用限制（HTTP 參照網址或 IP）
-7. 設定每日配額上限（建議 200 次/日）
-8. 回到 Apps Script，執行 `setPlacesApiKey("你的API_KEY")`
+本輪不建立或設定 Google Places API Key，也不執行 `setPlacesApiKey()`。`PLACE_LINKS`、`VERIFIED_SERVICES` 與 Places 匹配維持原狀，待另行審查與驗證。
 
 ---
 
-## Phase 4: 部署搜尋器 Web App
+## Phase 4: 部署 Vercel 使用的唯讀 API
 
-### 步驟 4.1：首次部署
-1. 在 Apps Script 編輯器中，點選「部署 > 新增部署」
-2. 選擇類型「網頁應用程式」
-3. 設定：
-   - 說明：`院所搜尋器 v1`
-   - 執行身分：`我`
-   - 存取權限：`任何人`（如果要嵌入 Google Sites，需要此設定）
-4. 點選「部署」
-5. 授權存取權限
-6. 複製「網頁應用程式」網址
-
-### 步驟 4.2：測試搜尋器
-1. 在瀏覽器中開啟部署網址
-2. 測試搜尋功能：
-   - 選擇科別
-   - 選擇縣市
-   - 點選搜尋
-   - 確認結果卡片顯示正確
-3. 測試手機版（可用瀏覽器開發者工具切換裝置）
-
-### 步驟 4.3：取得症狀工具網址
-在搜尋器網址後加上 `?page=symptom`，即為症狀工具的網址。
-例如：`https://script.google.com/macros/s/XXX/exec?page=symptom`
+1. 在綁定 Google Sheet 的 MVP Apps Script 專案中，確認 `01_ReadOnlyWebApi.gs` 是唯一的 `doGet`。
+2. 部署為網頁應用程式：執行身分選「我」，存取權限選「任何人」。
+3. 先開啟 `?action=health`，確認回傳 `ok: true`。
+4. 把 Web App URL 設定到 Vercel 的伺服器環境變數 `FACILITY_API_URL`；不要使用 `NEXT_PUBLIC_` 前綴，也不要把網址硬編碼進 route。
+5. 前台搜尋介面使用 Vercel Preview／部署版本；本輪不部署舊版 Apps Script 搜尋器 HTML。
 
 ---
 
-## Phase 5: 建立 Google Sites
+## Phase 5: Google Sites（本輪延後）
 
-### 步驟 5.1：建立網站
-1. 前往 [Google Sites](https://sites.google.com)
-2. 點選「建立 > 空白網站」
-3. 命名為「看不見的痛｜神經痛就醫導航」
-
-### 步驟 5.2：建立頁面
-依序建立 7 個頁面：
-1. 首頁（路徑：home）
-2. 看哪一科（路徑：which-department）
-3. 描述疼痛（路徑：describe-pain）
-4. 找院所（路徑：search）
-5. 過來人經驗（路徑：crystal-story）
-6. 緊急警訊（路徑：emergency）
-7. 資料與聲明（路徑：about）
-
-### 步驟 5.3：貼入文案
-1. 打開 `download/content/google-sites-content.md`
-2. 對每個頁面：
-   - 在 Google Sites 中新增「文字方塊」
-   - 將對應頁面的文案貼入
-   - 依 Markdown 中的標題層級設定樣式（H1/H2/H3）
-
-### 步驟 5.4：嵌入搜尋器
-1. 在「找院所」頁面中
-2. 點選「插入 > 內嵌 > 依據網址」
-3. 貼入搜尋器 Web App 網址
-4. 調整大小（建議寬度：全寬，高度：800px）
-
-### 步驟 5.5：嵌入症狀工具
-1. 在「描述疼痛」頁面中
-2. 點選「插入 > 內嵌 > 依據網址」
-3. 貼入症狀工具網址（加 `?page=symptom`）
-4. 調整大小（建議寬度：全寬，高度：1200px）
-
-### 步驟 5.6：設定導覽
-1. 在「主題」中選擇簡潔的主題
-2. 將 7 個頁面加入頂部導覽列
-3. 將「緊急警訊」設為醒目顏色
-
-### 步驟 5.7：設定 SEO
-1. 在每個頁面的「設定」中：
-   - 設定頁面標題（SEO title）
-   - 設定頁面說明（meta description）
-2. 在網站設定中：
-   - 設定網站名稱
-   - 設定 favicon（可選）
+Google Sites 文案與舊版 HTML 嵌入維持延後，不在本輪 MVP API 驗證範圍。請不要把 `06_Code.gs`、`04_SearchWebApp.html` 或 `05_SymptomTool.html` 加回 MVP API 專案。
 
 ---
 
