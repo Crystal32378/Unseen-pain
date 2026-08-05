@@ -106,7 +106,7 @@ const SHEET_CONFIG = {
   }
 };
 
-const SCRIPT_VERSION = '1.0.0';
+const SCRIPT_VERSION = '1.1.0';
 
 // ============ 主函式 ============
 
